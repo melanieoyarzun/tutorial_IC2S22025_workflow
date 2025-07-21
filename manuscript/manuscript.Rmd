@@ -44,3 +44,112 @@ plot(pressure)
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+Class work
+
+Install packages
+```{r}
+install.packages("theorytools", prompt = FALSE)
+install.packages("dagitty", prompt = FALSE)
+install.packages("tidySEM", prompt = FALSE)
+```
+
+
+
+Load packages
+
+```{r}
+library(theorytools)
+library(dagitty)
+library(tidySEM)
+```
+
+```{r}
+theorytools::download_theory("10.5281/zenodo.15648655", path = "theory")
+
+```
+
+3. Load the FAIR Theory
+This FAIR theory is an augmented DAG, which can be read using the dagitty package.
+
+The vignette Specifying Augmented Directed Acyclic Graphs describes what augmented DAGs are.
+
+Such DAGs are particularly useful for computational social science studies, because the theorytools package contains methods to convert augmented DAGs to generative models.
+
+Now, let’s load the augmented DAG. Note: when running this code from a code chunk in your Rmarkdown file, you must use the file path ../theory/sdt.txt to go back to the parent directory, because the manuscript and the theory are both in different subdirectories. If you run it interactively instead, you are already inside the parent directory, and you can use the path theory/sdt.txt.
+
+
+```{r}
+sdt <- dagitty::dagitty(paste(readLines("../theory/sdt.txt"), collapse = "\n"))
+```
+
+
+Then, we can plot the model using the tidySEM package. Get a basic plot by running graph_sem(sdt):
+
+
+```{r}
+tidySEM::graph_sem(sdt)
+```
+
+Simulating data
+
+```{r}
+set.seed(1)
+theorytools::simulate_data(sdt, n = 5)
+```
+
+Simplifying the Model
+Suppose we are interested in studying the effect of intrinsic motivation on well-being. Even if our research is grounded in SDT, we do not need the entire theory to hypothesize about this specific relationship. We can use the DAG to derive a restricted version of the theory that includes all variables that might confound the relationship of interest between intrinsic motivation and well-being:
+
+```{r}
+
+sdt_pruned <- theorytools:::prune_dag(sdt,
+                                      exposure = "intrinsic_motivation",
+                                      outcome = "wellbeing")
+sdt_pruned
+```
+
+```{r}
+set.seed(1)
+df <- theorytools::simulate_data(sdt_pruned, n = 100)
+head(df)
+```
+
+```{r}
+res <- lm(wellbeing ~ intrinsic_motivation + needs, data = df)
+summary(res)
+```
+
+Using worcs with targets: Sustainable Reproducibility
+One of the main tenets of open and reproducible science is the ability to re-run all analyses from raw data to published output, to ensure that results are still valid. However, in computationally intensive projects, re-running unchanged code repeatedly can be redundant, slow, and wasteful.
+
+The targets package reduces unnecessary compute by breaking down an analysis pipeline into steps that explicitly reference one another, where each step is only re-computed if either the step changed, or its inputs changed. Reducing unnecessary computation speeds up the analysis process and reduces the carbon footprint of analyses (Gupta et al. 2021).
+
+By combining worcs with targets, we get the best of both worlds:
+
+worcs is used to create a fully reproducible research archive;
+targets ensures that redundant steps in a reproducible analysis pipeline are not unnecessarily re-computed.
+
+
+```{r}
+
+```
+
+
+Power analysis, from wich effect size we observe significant results 
+
+
+With simultaion, theory base we could wrk on this. 
+
+
+```{r}
+install.packages("targets", prompt = FALSE)
+install.packages("tarchetypes", prompt = FALSE)
+```
+
+
+```{r}
+worcs::add_targets()
+```
+
